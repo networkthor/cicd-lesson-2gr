@@ -28,9 +28,8 @@ jobs:
       - name: clone repository
         run: git clone git@github.com:networkthor/cicd-lesson-2gr.git
     
-      - name: show date
+      - name: build new image
         run: |
-            ls -la
-            cd cicd-lesson-2gr
-            chmod +x scripts/test-scripts.sh
-            scripts/test-scripts.sh
+          cd cicd-lesson-2gr
+          docker build -t networkthor/frontend:latest .
+          docker images
