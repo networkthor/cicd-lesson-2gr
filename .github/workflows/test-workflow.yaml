@@ -33,3 +33,11 @@ jobs:
           cd cicd-lesson-2gr
           docker build -t networkthor/frontend:latest .
           docker images
+    
+      - name: login to docker registry
+        run: |
+          echo ${{ secrets.DOCKER_TOKEN }} | docker login -u networkthor --password-stdin
+    
+      - name: push image to registry
+        run: |
+            docker push networkthor/frontend:latest
