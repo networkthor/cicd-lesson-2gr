@@ -31,4 +31,5 @@ jobs:
       - name: show date
         run: |
             ls -la
+            cd cicd-lesson-2gr
             scripts/test-scripts.sh
