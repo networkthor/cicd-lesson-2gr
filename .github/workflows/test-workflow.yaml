@@ -9,3 +9,8 @@ jobs:
     steps:
       - name: echo simple text
         run: echo "This is my first Github pipeline"
+    
+      - name: show date
+        run: |
+            date
+            pwd
