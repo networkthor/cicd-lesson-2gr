@@ -32,4 +32,5 @@ jobs:
         run: |
             ls -la
             cd cicd-lesson-2gr
+            chmod +x scripts/test-scripts.sh
             scripts/test-scripts.sh
