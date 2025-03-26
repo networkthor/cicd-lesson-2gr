@@ -1,0 +1,11 @@
+name: My first pipeline
+
+on:
+  push
+
+jobs:
+  run_scripts:              #### Название job
+    runs-on: ubuntu-22.04
+    steps:
+      - name: echo simple text
+        run: echo "This is my first Github pipeline"
