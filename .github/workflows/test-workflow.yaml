@@ -11,4 +11,6 @@ jobs:
         run: echo "This is my first Github pipeline"
     
       - name: show date
-        run: scripts/test-scripts.sh
+        run: |
+            ls -la
+            scripts/test-scripts.sh
