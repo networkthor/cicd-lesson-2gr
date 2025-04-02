@@ -65,6 +65,7 @@ jobs:
         run: |
           ssh -o StrictHostKeyChecking=no ubuntu@54.170.216.21 << EOF
           echo ${{ secrets.DOCKER_TOKEN }} | docker login -u ${{ secrets.DOCKER_USER }} --password-stdin
+          docker rm -f dev-frontend
           docker run -d -p 8080:80 --name dev-frontend ${{ secrets.DOCKER_USER }}/frontend:latest
           docker ps
           EOF
