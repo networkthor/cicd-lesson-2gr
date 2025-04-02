@@ -75,6 +75,7 @@ jobs:
     runs-on: ubuntu-22.04
     steps:
       - name: run tests
+        id: run-test
         run: |
           WEBSITE_URL="http://54.170.216.21:8080"
           # Perform a curl request and capture the HTTP status code
@@ -87,5 +88,14 @@ jobs:
           else
               echo "Website is not accessible. Status: $HTTP_STATUS."
               exit 1
+          fi
+      
+      - name: send outputs to github summary
+        if: always()
+        run: |
+          if [[ "${{ steps.run-test.outcome }}" == "success" ]]; then
+            echo "✅ The tests passed successfully!" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "❌ The tests failed. Please investigate the issue." >> $GITHUB_STEP_SUMMARY
           fi
   
