@@ -33,14 +33,14 @@ jobs:
 
     - name: get the latest tag
       run: |
-        cd cicd-lessons-1
+        cd cicd-lesson-2gr
         latest_tag=$(git describe --tags $(git rev-list --tags --max-count=1))
         echo "Latest tag: $latest_tag"
         echo "TAG=$latest_tag" >> $GITHUB_ENV
     
     - name: calculate new tag
       run: |
-        cd cicd-lessons-1
+        cd cicd-lesson-2gr
         IFS='.' read -r -a parts <<< "$TAG"
         major=${parts[0]}
         minor=${parts[1]}
@@ -52,7 +52,7 @@ jobs:
     
     - name: create and push new tag
       run: |
-        cd cicd-lessons-1
+        cd cicd-lesson-2gr
         git config user.name "github-actions"
         git config user.email "github-actions@github.com"
         git tag $NEW_TAG
