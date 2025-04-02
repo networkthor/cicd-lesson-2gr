@@ -9,7 +9,7 @@ on:
      - closed
 
 jobs:
-  master_build:              #### Название job
+  master_build:
     runs-on: ubuntu-22.04
     if: github.event.pull_request.merged == true
     steps:
