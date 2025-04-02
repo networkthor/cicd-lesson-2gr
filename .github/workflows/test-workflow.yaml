@@ -43,6 +43,7 @@ jobs:
             docker push networkthor/frontend:latest
   
   deploy_image:
+    needs: ['build_and_push']
     runs-on: ubuntu-22.04
     steps:
       - name: prepare ssh keys
