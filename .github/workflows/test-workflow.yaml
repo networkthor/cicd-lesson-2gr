@@ -1,7 +1,9 @@
-name: My first pipeline
+name: Build and Deploy to Dev
 
 on:
-  push
+  push:
+   branches:
+      - 'dev-*'
 
 jobs:
   build_and_push:              #### Название job
