@@ -1,0 +1,59 @@
+name: Master Build
+
+on:
+  pull_request:
+   branches:
+     - main
+     ### - master    Если используете master
+   types:
+     - closed
+
+jobs:
+  master_build:              #### Название job
+    runs-on: ubuntu-22.04
+    if: github.event.pull_request.merged == true
+    steps:
+    - name: prepare ssh keys
+      run: |
+        ## Download ssh key to .ssh/
+        mkdir -m 700 ~/.ssh
+        echo -e "${{ secrets.CICD_SSH_PRIV_KEY }}" > ~/.ssh/id_rsa
+        chmod 600 ~/.ssh/id_rsa
+        
+        ## Allow connection to github
+        cat << EOF >> ~/.ssh/config
+        Host github.com
+            StrictHostKeyChecking no
+            UserKnownHostsFile=/dev/null
+            ForwardAgent yes
+        EOF
+    
+    - name: clone repository
+      run: git clone git@github.com:networkthor/cicd-lesson-2gr.git
+
+    - name: get the latest tag
+      run: |
+        cd cicd-lessons-1
+        latest_tag=$(git describe --tags $(git rev-list --tags --max-count=1))
+        echo "Latest tag: $latest_tag"
+        echo "TAG=$latest_tag" >> $GITHUB_ENV
+    
+    - name: calculate new tag
+      run: |
+        cd cicd-lessons-1
+        IFS='.' read -r -a parts <<< "$TAG"
+        major=${parts[0]}
+        minor=${parts[1]}
+        patch=${parts[2]}
+        new_patch=$((patch + 1))
+        new_tag="$major.$minor.$new_patch"
+        echo "New tag: $new_tag"
+        echo "NEW_TAG=$new_tag" >> $GITHUB_ENV
+    
+    - name: create and push new tag
+      run: |
+        cd cicd-lessons-1
+        git config user.name "github-actions"
+        git config user.email "github-actions@github.com"
+        git tag $NEW_TAG
+        git push origin $NEW_TAG
