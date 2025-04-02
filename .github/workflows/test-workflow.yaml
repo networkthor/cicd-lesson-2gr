@@ -4,7 +4,7 @@ on:
   push
 
 jobs:
-  run_scripts:              #### Название job
+  build_and_push:              #### Название job
     runs-on: ubuntu-22.04
     steps:
       - name: echo simple text
@@ -41,3 +41,30 @@ jobs:
       - name: push image to registry
         run: |
             docker push networkthor/frontend:latest
+  
+  deploy_image:
+    runs-on: ubuntu-22.04
+    steps:
+      - name: prepare ssh keys
+        run: |
+          ## Download ssh key to .ssh/
+          mkdir -m 700 ~/.ssh
+          echo -e "${{ secrets.DEV_SSH_PRIV_KEY }}" > ~/.ssh/id_rsa
+          chmod 600 ~/.ssh/id_rsa
+
+          ## Allow connection to github
+          cat << EOF >> ~/.ssh/config
+          Host github.com
+              StrictHostKeyChecking no
+              UserKnownHostsFile=/dev/null
+              ForwardAgent yes
+          EOF
+      
+      - name: deploy image to dev env
+        run: |
+          ssh -o StrictHostKeyChecking=no ubuntu@54.170.216.21 << EOF
+          echo ${{ secrets.DOCKER_TOKEN }} | docker login -u ${{ secrets.DOCKER_USER }} --password-stdin
+          docker run -d -p 8080:80 --name dev-frontend ${{ secrets.DOCKER_USER }}/frontend:latest
+          docker ps
+          EOF
+  
