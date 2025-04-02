@@ -79,7 +79,7 @@ jobs:
       - name: run tests
         id: run-test
         run: |
-          WEBSITE_URL="http://54.170.216.212:8080"
+          WEBSITE_URL="http://54.170.216.21:8080"
           # Perform a curl request and capture the HTTP status code
           HTTP_STATUS=$(curl -o /dev/null -s -w "%{http_code}" "$WEBSITE_URL")
   
