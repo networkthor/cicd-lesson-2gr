@@ -41,12 +41,29 @@ jobs:
     - name: calculate new tag
       run: |
         cd cicd-lesson-2gr
+        # Extract server level from PR labels
+        label=$(echo "${{ toJson(github.event.pull_request.labels.*.name) }}" | grep -oE "major|minor|patch" || echo "patch")
+        echo "Detected server level from label: $label"
+
+        # Split the current tag into components
         IFS='.' read -r -a parts <<< "$TAG"
         major=${parts[0]}
         minor=${parts[1]}
         patch=${parts[2]}
-        new_patch=$((patch + 1))
-        new_tag="$major.$minor.$new_patch"
+        # Increment the appropriate version part
+        if [ "$label" == "major" ]; then
+          major=$((major + 1))
+          minor=0
+          patch=0
+        elif [ "$label" == "minor" ]; then
+          minor=$((minor + 1))
+          patch=0
+        else
+          patch=$((patch + 1))
+        fi
+
+        # Construct the new tag
+        new_tag="$major.$minor.$patch"
         echo "New tag: $new_tag"
         echo "NEW_TAG=$new_tag" >> $GITHUB_ENV
     
