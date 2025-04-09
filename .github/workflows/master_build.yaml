@@ -62,7 +62,7 @@ jobs:
           patch=$((patch + 1))
         fi
 
-        # Construct the new tag
+        # Construct the new tag !!!
         new_tag="$major.$minor.$patch"
         echo "New tag: $new_tag"
         echo "NEW_TAG=$new_tag" >> $GITHUB_ENV
