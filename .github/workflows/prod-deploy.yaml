@@ -1,0 +1,66 @@
+name: Production Release
+
+on:
+  workflow_dispatch:
+
+jobs:
+  deploy_to_production:              #### Название job
+    runs-on: ubuntu-22.04
+    steps:
+      - name: retrieve new tag
+        run: |
+          echo "NEW_TAG=${{  github.ref_name }}" >> $GITHUB_ENV
+
+      - name: prepare ssh keys
+        run: |
+          ## Download ssh key to .ssh/
+          mkdir -m 700 ~/.ssh
+          echo -e "${{ secrets.DEV_SSH_PRIV_KEY }}" > ~/.ssh/id_rsa
+          chmod 600 ~/.ssh/id_rsa
+
+          ## Allow connection to github
+          cat << EOF >> ~/.ssh/config
+          Host github.com
+              StrictHostKeyChecking no
+              UserKnownHostsFile=/dev/null
+              ForwardAgent yes
+          EOF
+      
+      - name: deploy image to dev production env
+        run: |
+          ssh -o StrictHostKeyChecking=no ubuntu@54.154.171.188 << EOF
+          echo ${{ secrets.DOCKER_TOKEN }} | docker login -u ${{ secrets.DOCKER_USER }} --password-stdin
+          docker rm -f production-frontend
+          docker run -d -p 8085:80 --pull=always --name production-frontend ${{ secrets.DOCKER_USER }}/frontend:$NEW_TAG
+          docker ps
+          EOF
+  
+  run_tests:
+    needs: ['deploy_to_production']
+    runs-on: ubuntu-22.04
+    steps:
+      - name: run tests
+        id: run-test
+        run: |
+          WEBSITE_URL="http://54.154.171.188:8080"
+          # Perform a curl request and capture the HTTP status code
+          HTTP_STATUS=$(curl -o /dev/null -s -w "%{http_code}" "$WEBSITE_URL")
+  
+          # Check the HTTP status code
+          if [[ "$HTTP_STATUS" == "200" ]]; then
+              echo "Website is accessible. Status: 200 OK."
+              exit 0
+          else
+              echo "Website is not accessible. Status: $HTTP_STATUS."
+              exit 1
+          fi
+      
+      - name: send outputs to github summary
+        if: always()
+        run: |
+          if [[ "${{ steps.run-test.outcome }}" == "success" ]]; then
+            echo "✅ The tests passed successfully!" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "❌ The tests failed. Please investigate the issue." >> $GITHUB_STEP_SUMMARY
+          fi
+  
