@@ -45,7 +45,7 @@ jobs:
         label=$(echo "${{ toJson(github.event.pull_request.labels.*.name) }}" | grep -oE "major|minor|patch" || echo "patch")
         echo "Detected server level from label: $label"
 
-        # Split the current tag into components !!!
+        # Split the current tag into components
         IFS='.' read -r -a parts <<< "$TAG"
         major=${parts[0]}
         minor=${parts[1]}
