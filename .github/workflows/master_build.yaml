@@ -54,7 +54,7 @@ jobs:
         # Delete v from major version
         major="${major#v}"
         
-        # Increment the appropriate version part
+        # Increment the appropriate version part !
         if [ "$label" == "major" ]; then
           major=$((major + 1))
           minor=0
