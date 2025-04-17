@@ -26,7 +26,7 @@ jobs:
                 ForwardAgent yes
     
       - name: clone repository
-        run: git clone git@github.com:networkthor/cicd-lesson-2gr.git
+        uses: actions/checkout@v4
     
       - name: build new image
         run: |
@@ -63,7 +63,7 @@ jobs:
       
       - name: deploy image to dev env
         run: |
-          ssh -o StrictHostKeyChecking=no ubuntu@54.170.216.21 << EOF
+          ssh -o StrictHostKeyChecking=no ubuntu@3.249.53.178 << EOF
           echo ${{ secrets.DOCKER_TOKEN }} | docker login -u ${{ secrets.DOCKER_USER }} --password-stdin
           docker rm -f dev-frontend
           docker run -d -p 8080:80 --pull=always --name dev-frontend ${{ secrets.DOCKER_USER }}/frontend:latest
@@ -77,7 +77,7 @@ jobs:
       - name: run tests
         id: run-test
         run: |
-          WEBSITE_URL="http://54.170.216.21:8080"
+          WEBSITE_URL="http://3.249.53.178:8080"
           # Perform a curl request and capture the HTTP status code
           HTTP_STATUS=$(curl -o /dev/null -s -w "%{http_code}" "$WEBSITE_URL")
   
