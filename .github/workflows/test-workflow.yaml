@@ -47,7 +47,7 @@ jobs:
       - name: prepare ssh keys
         uses: shimataro/ssh-key-action@v2
         with:
-          key: ${{ secrets.CICD_SSH_PRIV_KEY }}
+          key: ${{ secrets.DEV_SSH_PRIV_KEY }}
           name: id_rsa # optional
           known_hosts: 'github.com'
           if_key_exists: replace
@@ -62,7 +62,7 @@ jobs:
         with:
           host: 3.249.53.178
           username: ubuntu
-          key: ${{ secrets.CICD_SSH_PRIV_KEY }}
+          key: ${{ secrets.DEV_SSH_PRIV_KEY }}
           port: 22
           script: |
             echo ${{ secrets.DOCKER_TOKEN }} | docker login -u ${{ secrets.DOCKER_USER }} --password-stdin
@@ -80,7 +80,7 @@ jobs:
         with:
           host: 3.249.53.178
           username: ubuntu
-          key: ${{ secrets.CICD_SSH_PRIV_KEY }}
+          key: ${{ secrets.DEV_SSH_PRIV_KEY }}
           port: 22
           script: |
             WEBSITE_URL="http://3.249.53.178:8080"
