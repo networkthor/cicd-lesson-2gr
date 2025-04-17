@@ -62,6 +62,7 @@ jobs:
         with:
           host: 3.249.53.178
           username: ubuntu
+          key: ${{ secrets.CICD_SSH_PRIV_KEY }}
           port: 22
           script: |
             echo ${{ secrets.DOCKER_TOKEN }} | docker login -u ${{ secrets.DOCKER_USER }} --password-stdin
@@ -79,6 +80,7 @@ jobs:
         with:
           host: 3.249.53.178
           username: ubuntu
+          key: ${{ secrets.CICD_SSH_PRIV_KEY }}
           port: 22
           script: |
             WEBSITE_URL="http://3.249.53.178:8080"
