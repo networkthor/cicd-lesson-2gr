@@ -30,6 +30,8 @@ jobs:
     
       - name: build new image
         run: |
+          ls -la 
+          pwd
           cd cicd-lesson-2gr
           docker build -t networkthor/frontend:latest .
           docker images
