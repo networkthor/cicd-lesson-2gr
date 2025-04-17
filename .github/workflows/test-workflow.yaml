@@ -13,19 +13,17 @@ jobs:
         run: echo "This is my first Github pipeline"
     
       - name: prepare ssh keys
-        run: |
-          ## Download ssh key to .ssh/
-          mkdir -m 700 ~/.ssh
-          echo -e "${{ secrets.CICD_SSH_PRIV_KEY }}" > ~/.ssh/id_rsa
-          chmod 600 ~/.ssh/id_rsa
-
-          ## Allow connection to github
-          cat << EOF >> ~/.ssh/config
-          Host github.com
-              StrictHostKeyChecking no
-              UserKnownHostsFile=/dev/null
-              ForwardAgent yes
-          EOF
+        uses: shimataro/ssh-key-action@v2
+        with:
+          key: ${{ secrets.CICD_SSH_PRIV_KEY }}
+          name: id_rsa # optional
+          known_hosts: 'github.com'
+          if_key_exists: replace
+          config: |
+              Host github.com
+                StrictHostKeyChecking no
+                UserKnownHostsFile=/dev/null
+                ForwardAgent yes
     
       - name: clone repository
         run: git clone git@github.com:networkthor/cicd-lesson-2gr.git
