@@ -45,28 +45,29 @@ jobs:
     runs-on: ubuntu-22.04
     steps:
       - name: prepare ssh keys
-        run: |
-          ## Download ssh key to .ssh/
-          mkdir -m 700 ~/.ssh
-          echo -e "${{ secrets.DEV_SSH_PRIV_KEY }}" > ~/.ssh/id_rsa
-          chmod 600 ~/.ssh/id_rsa
-
-          ## Allow connection to github
-          cat << EOF >> ~/.ssh/config
-          Host github.com
-              StrictHostKeyChecking no
-              UserKnownHostsFile=/dev/null
-              ForwardAgent yes
-          EOF
+        uses: shimataro/ssh-key-action@v2
+        with:
+          key: ${{ secrets.CICD_SSH_PRIV_KEY }}
+          name: id_rsa # optional
+          known_hosts: 'github.com'
+          if_key_exists: replace
+          config: |
+              Host github.com
+                StrictHostKeyChecking no
+                UserKnownHostsFile=/dev/null
+                ForwardAgent yes
       
       - name: deploy image to dev env
-        run: |
-          ssh -o StrictHostKeyChecking=no ubuntu@3.249.53.178 << EOF
-          echo ${{ secrets.DOCKER_TOKEN }} | docker login -u ${{ secrets.DOCKER_USER }} --password-stdin
-          docker rm -f dev-frontend
-          docker run -d -p 8080:80 --pull=always --name dev-frontend ${{ secrets.DOCKER_USER }}/frontend:latest
-          docker ps
-          EOF
+        uses: appleboy/ssh-action@v1
+        with:
+          host: 3.249.53.178
+          username: ubuntu
+          port: 22
+          script: |
+            echo ${{ secrets.DOCKER_TOKEN }} | docker login -u ${{ secrets.DOCKER_USER }} --password-stdin
+            docker rm -f dev-frontend
+            docker run -d -p 8080:80 --pull=always --name dev-frontend ${{ secrets.DOCKER_USER }}/frontend:latest
+            docker ps
   
   run_tests:
     needs: ['deploy_image']
@@ -74,19 +75,24 @@ jobs:
     steps:
       - name: run tests
         id: run-test
-        run: |
-          WEBSITE_URL="http://3.249.53.178:8080"
-          # Perform a curl request and capture the HTTP status code
-          HTTP_STATUS=$(curl -o /dev/null -s -w "%{http_code}" "$WEBSITE_URL")
-  
-          # Check the HTTP status code
-          if [[ "$HTTP_STATUS" == "200" ]]; then
-              echo "Website is accessible. Status: 200 OK."
-              exit 0
-          else
-              echo "Website is not accessible. Status: $HTTP_STATUS."
-              exit 1
-          fi
+        uses: appleboy/ssh-action@v1
+        with:
+          host: 3.249.53.178
+          username: ubuntu
+          port: 22
+          script: |
+            WEBSITE_URL="http://3.249.53.178:8080"
+            # Perform a curl request and capture the HTTP status code
+            HTTP_STATUS=$(curl -o /dev/null -s -w "%{http_code}" "$WEBSITE_URL")
+          
+            # Check the HTTP status code
+            if [[ "$HTTP_STATUS" == "200" ]]; then
+                echo "Website is accessible. Status: 200 OK."
+                exit 0
+            else
+                echo "Website is not accessible. Status: $HTTP_STATUS."
+                exit 1
+            fi
       
       - name: send outputs to github summary
         if: always()
