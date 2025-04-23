@@ -99,6 +99,7 @@ jobs:
             HTTP_STATUS=$(curl -o /dev/null -s -w "%{http_code}" "$WEBSITE_URL")
 
             echo "Test result is $HTTP_STATUS" >> test-results.txt
+            cat test-results.txt
           
             # Check the HTTP status code
             if [[ "$HTTP_STATUS" == "200" ]]; then
@@ -121,5 +122,5 @@ jobs:
       - name: upload test results
         uses: actions/upload-artifact@v4
         with:
-          path: test-results.txt
+          path: ./test-results.txt
   
