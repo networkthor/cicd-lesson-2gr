@@ -49,8 +49,8 @@ jobs:
   
       - name: login to aws
         run: |
-          export AWS_ACCESS_KEY=${{ secrets.AWS_ACCESS_KEY }} >> $GITHUB_ENV
-          export AWS_SECRET_ACCESS_KEY=${{ secrets.AWS_SECRET_ACCESS_KEY }} >> $GITHUB_ENV
+          echo  "AWS_ACCESS_KEY=${{ secrets.AWS_ACCESS_KEY }}" >> $GITHUB_ENV
+          echo  "AWS_SECRET_ACCESS_KEY=${{ secrets.AWS_SECRET_ACCESS_KEY }}" >> $GITHUB_ENV
     
       - name: prepare ssh keys
         uses: shimataro/ssh-key-action@v2
