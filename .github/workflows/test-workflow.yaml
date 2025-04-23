@@ -7,7 +7,7 @@ on:
 
 env:
   DOCKER_REGISTRY: 'networkthor/frontend'
-  DEV_SRV: '3.249.53.178'
+  DEV_SRV: '52.50.218.70'
 
 jobs:
   build_and_push:              #### Название job
