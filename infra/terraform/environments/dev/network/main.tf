@@ -1,5 +1,5 @@
 module "network" {
-  source                 = "github.com/networkthor/terraform-aws-network.git"
+  source                 = "git@github.com:networkthor/terraform-aws-network.git"
   environment            = var.environment
   cidr_block             = var.cidr_block
   public_subnets         = var.public_subnets

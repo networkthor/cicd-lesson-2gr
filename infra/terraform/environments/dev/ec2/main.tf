@@ -1,5 +1,5 @@
 module "ec2" {
-  source                      = "github.com/networkthor/terraform-aws-ec2.git"
+  source                      = "git@github.com:networkthor/terraform-aws-ec2.git"
   environment                 = var.environment
   instance_count              = 1
   instance_type               = var.instance_type
