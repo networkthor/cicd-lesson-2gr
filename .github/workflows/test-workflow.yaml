@@ -97,10 +97,7 @@ jobs:
             WEBSITE_URL="http://${{ env.DEV_SRV }}:8080"
             # Perform a curl request and capture the HTTP status code
             HTTP_STATUS=$(curl -o /dev/null -s -w "%{http_code}" "$WEBSITE_URL")
-
-            echo "Test result is $HTTP_STATUS" >> test-results.txt
-            echo "artifactPath=test-results.txt" >> $GITHUB_ENV
-          
+         
             # Check the HTTP status code
             if [[ "$HTTP_STATUS" == "200" ]]; then
                 echo "Website is accessible. Status: 200 OK."
@@ -115,13 +112,15 @@ jobs:
         run: |
           if [[ "${{ steps.run-test.outcome }}" == "success" ]]; then
             echo "✅ The tests passed successfully!" >> $GITHUB_STEP_SUMMARY
+            echo "✅ The tests passed successfully!" >> test-results.txt
           else
             echo "❌ The tests failed. Please investigate the issue." >> $GITHUB_STEP_SUMMARY
+            echo "❌ The tests failed. Please investigate the issue." >> test-results.txt
           fi
       
       - name: upload test results
         uses: actions/upload-artifact@v4
         with:
           name: artifact
-          path: ${{ env.artifactPath }}
+          path: test-results.txt
   
