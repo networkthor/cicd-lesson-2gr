@@ -52,15 +52,16 @@ jobs:
           export AWS_ACCESS_KEY=${{ secrets.AWS_ACCESS_KEY }}
           export AWS_SECRET_ACCESS_KEY=${{ secrets.AWS_SECRET_ACCESS_KEY }}
     
-      - name: terraform validate
-        run: |
-          cd infra/terraform/environments/${{ inputs.ENV_NAME }}/${{ inputs.RESOURCE_TYPE }}
-          terraform validate
-        
+
       - name: terraform init
         run: |
           cd infra/terraform/environments/${{ inputs.ENV_NAME }}/${{ inputs.RESOURCE_TYPE }}
           terraform init
+
+      - name: terraform validate
+        run: |
+          cd infra/terraform/environments/${{ inputs.ENV_NAME }}/${{ inputs.RESOURCE_TYPE }}
+          terraform validate
         
       - name: terraform action
         run: |
