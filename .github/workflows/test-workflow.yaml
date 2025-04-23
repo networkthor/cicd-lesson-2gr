@@ -99,8 +99,7 @@ jobs:
             HTTP_STATUS=$(curl -o /dev/null -s -w "%{http_code}" "$WEBSITE_URL")
 
             echo "Test result is $HTTP_STATUS" >> test-results.txt
-            pwd
-            ls -la
+            echo "artifactPath=test-results.txt" >> $GITHUB_ENV
           
             # Check the HTTP status code
             if [[ "$HTTP_STATUS" == "200" ]]; then
@@ -123,5 +122,6 @@ jobs:
       - name: upload test results
         uses: actions/upload-artifact@v4
         with:
-          path: /home/ubuntu/test-results.txt
+          name: artifact
+          path: ${{ env.artifactPath }}
   
