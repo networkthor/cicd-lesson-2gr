@@ -5,72 +5,81 @@ on:
    branches:
       - 'dev-*'
 
+env:
+  DOCKER_REGISTRY: 'networkthor/frontend'
+  DEV_SRV: '52.50.218.70'
+
 jobs:
   build_and_push:              #### Название job
     runs-on: ubuntu-22.04
+    env:
+      JOB_LEVEL_ENV: 'test-job-level-env'
     steps:
       - name: echo simple text
-        run: echo "This is my first Github pipeline"
+        run: echo ${{ env.JOB_LEVEL_ENV }}
+        env:
+          JOB_LEVEL_ENV: 'test-step-level-env'
     
       - name: prepare ssh keys
-        run: |
-          ## Download ssh key to .ssh/
-          mkdir -m 700 ~/.ssh
-          echo -e "${{ secrets.CICD_SSH_PRIV_KEY }}" > ~/.ssh/id_rsa
-          chmod 600 ~/.ssh/id_rsa
-
-          ## Allow connection to github
-          cat << EOF >> ~/.ssh/config
-          Host github.com
-              StrictHostKeyChecking no
-              UserKnownHostsFile=/dev/null
-              ForwardAgent yes
-          EOF
+        uses: shimataro/ssh-key-action@v2
+        with:
+          key: ${{ secrets.CICD_SSH_PRIV_KEY }}
+          name: id_rsa # optional
+          known_hosts: 'github.com'
+          if_key_exists: replace
+          config: |
+              Host github.com
+                StrictHostKeyChecking no
+                UserKnownHostsFile=/dev/null
+                ForwardAgent yes
     
       - name: clone repository
-        run: git clone git@github.com:networkthor/cicd-lesson-2gr.git
-    
-      - name: build new image
-        run: |
-          cd cicd-lesson-2gr
-          docker build -t networkthor/frontend:latest .
-          docker images
-    
+        uses: actions/checkout@v4
+      
       - name: login to docker registry
-        run: |
-          echo ${{ secrets.DOCKER_TOKEN }} | docker login -u networkthor --password-stdin
-    
+        uses: docker/login-action@v3
+        with:
+          username: networkthor
+          password: ${{ secrets.DOCKER_TOKEN }}
+
       - name: push image to registry
-        run: |
-            docker push networkthor/frontend:latest
+        uses: docker/build-push-action@v6
+        with:
+          push: true
+          tags: ${{ env.DOCKER_REGISTRY }}:latest
   
   deploy_image:
     needs: ['build_and_push']
     runs-on: ubuntu-22.04
     steps:
-      - name: prepare ssh keys
-        run: |
-          ## Download ssh key to .ssh/
-          mkdir -m 700 ~/.ssh
-          echo -e "${{ secrets.DEV_SSH_PRIV_KEY }}" > ~/.ssh/id_rsa
-          chmod 600 ~/.ssh/id_rsa
+      - name: echo simple text
+        run: echo ${{ env.JOB_LEVEL_ENV }}
 
-          ## Allow connection to github
-          cat << EOF >> ~/.ssh/config
-          Host github.com
-              StrictHostKeyChecking no
-              UserKnownHostsFile=/dev/null
-              ForwardAgent yes
-          EOF
+      - name: prepare ssh keys
+        uses: shimataro/ssh-key-action@v2
+        with:
+          key: ${{ secrets.DEV_SSH_PRIV_KEY }}
+          name: id_rsa # optional
+          known_hosts: 'github.com'
+          if_key_exists: replace
+          config: |
+              Host github.com
+                StrictHostKeyChecking no
+                UserKnownHostsFile=/dev/null
+                ForwardAgent yes
       
       - name: deploy image to dev env
-        run: |
-          ssh -o StrictHostKeyChecking=no ubuntu@54.170.216.21 << EOF
-          echo ${{ secrets.DOCKER_TOKEN }} | docker login -u ${{ secrets.DOCKER_USER }} --password-stdin
-          docker rm -f dev-frontend
-          docker run -d -p 8080:80 --pull=always --name dev-frontend ${{ secrets.DOCKER_USER }}/frontend:latest
-          docker ps
-          EOF
+        uses: appleboy/ssh-action@v1
+        with:
+          host: ${{ env.DEV_SRV }}
+          username: ubuntu
+          key: ${{ secrets.DEV_SSH_PRIV_KEY }}
+          port: 22
+          script: |
+            echo ${{ secrets.DOCKER_TOKEN }} | docker login -u ${{ secrets.DOCKER_USER }} --password-stdin
+            docker rm -f dev-frontend
+            docker run -d -p 8080:80 --pull=always --name dev-frontend ${{ secrets.DOCKER_USER }}/frontend:latest
+            docker ps
   
   run_tests:
     needs: ['deploy_image']
@@ -78,26 +87,40 @@ jobs:
     steps:
       - name: run tests
         id: run-test
-        run: |
-          WEBSITE_URL="http://54.170.216.21:8080"
-          # Perform a curl request and capture the HTTP status code
-          HTTP_STATUS=$(curl -o /dev/null -s -w "%{http_code}" "$WEBSITE_URL")
-  
-          # Check the HTTP status code
-          if [[ "$HTTP_STATUS" == "200" ]]; then
-              echo "Website is accessible. Status: 200 OK."
-              exit 0
-          else
-              echo "Website is not accessible. Status: $HTTP_STATUS."
-              exit 1
-          fi
+        uses: appleboy/ssh-action@v1
+        with:
+          host: ${{ env.DEV_SRV }}
+          username: ubuntu
+          key: ${{ secrets.DEV_SSH_PRIV_KEY }}
+          port: 22
+          script: |
+            WEBSITE_URL="http://${{ env.DEV_SRV }}:8080"
+            # Perform a curl request and capture the HTTP status code
+            HTTP_STATUS=$(curl -o /dev/null -s -w "%{http_code}" "$WEBSITE_URL")
+         
+            # Check the HTTP status code
+            if [[ "$HTTP_STATUS" == "200" ]]; then
+                echo "Website is accessible. Status: 200 OK."
+                exit 0
+            else
+                echo "Website is not accessible. Status: $HTTP_STATUS."
+                exit 1
+            fi
       
       - name: send outputs to github summary
         if: always()
         run: |
           if [[ "${{ steps.run-test.outcome }}" == "success" ]]; then
             echo "✅ The tests passed successfully!" >> $GITHUB_STEP_SUMMARY
+            echo "✅ The tests passed successfully!" >> test-results.txt
           else
             echo "❌ The tests failed. Please investigate the issue." >> $GITHUB_STEP_SUMMARY
+            echo "❌ The tests failed. Please investigate the issue." >> test-results.txt
           fi
+      
+      - name: upload test results
+        uses: actions/upload-artifact@v4
+        with:
+          name: artifact
+          path: test-results.txt
   
