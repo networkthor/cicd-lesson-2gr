@@ -5,6 +5,10 @@ on:
    branches:
       - 'dev-*'
 
+env:
+  DOCKER_REGISTRY: 'networkthor/frontend'
+  DEV_SRV: '3.249.53.178'
+
 jobs:
   build_and_push:              #### Название job
     runs-on: ubuntu-22.04
@@ -27,7 +31,7 @@ jobs:
     
       - name: clone repository
         uses: actions/checkout@v4
-    
+      
       - name: login to docker registry
         uses: docker/login-action@v3
         with:
@@ -38,7 +42,7 @@ jobs:
         uses: docker/build-push-action@v6
         with:
           push: true
-          tags: networkthor/frontend:latest
+          tags: ${{ env.DOCKER_REGISTRY }}:latest
   
   deploy_image:
     needs: ['build_and_push']
@@ -60,7 +64,7 @@ jobs:
       - name: deploy image to dev env
         uses: appleboy/ssh-action@v1
         with:
-          host: 3.249.53.178
+          host: ${{ env.DEV_SRV }}
           username: ubuntu
           key: ${{ secrets.DEV_SSH_PRIV_KEY }}
           port: 22
@@ -78,12 +82,12 @@ jobs:
         id: run-test
         uses: appleboy/ssh-action@v1
         with:
-          host: 3.249.53.178
+          host: ${{ env.DEV_SRV }}
           username: ubuntu
           key: ${{ secrets.DEV_SSH_PRIV_KEY }}
           port: 22
           script: |
-            WEBSITE_URL="http://3.249.53.178:8080"
+            WEBSITE_URL="http://${{ env.DEV_SRV }}:8080"
             # Perform a curl request and capture the HTTP status code
             HTTP_STATUS=$(curl -o /dev/null -s -w "%{http_code}" "$WEBSITE_URL")
           
