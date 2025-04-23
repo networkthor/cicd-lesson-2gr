@@ -52,7 +52,19 @@ jobs:
           export AWS_ACCESS_KEY=${{ secrets.AWS_ACCESS_KEY }}
           export AWS_SECRET_ACCESS_KEY=${{ secrets.AWS_SECRET_ACCESS_KEY }}
     
-
+      - name: prepare ssh keys
+        uses: shimataro/ssh-key-action@v2
+        with:
+          key: ${{ secrets.CICD_SSH_PRIV_KEY }}
+          name: id_rsa # optional
+          known_hosts: 'github.com'
+          if_key_exists: replace
+          config: |
+              Host github.com
+                StrictHostKeyChecking no
+                UserKnownHostsFile=/dev/null
+                ForwardAgent yes
+    
       - name: terraform init
         run: |
           cd infra/terraform/environments/${{ inputs.ENV_NAME }}/${{ inputs.RESOURCE_TYPE }}
