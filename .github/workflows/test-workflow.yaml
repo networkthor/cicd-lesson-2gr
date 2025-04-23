@@ -17,6 +17,8 @@ jobs:
     steps:
       - name: echo simple text
         run: echo ${{ env.JOB_LEVEL_ENV }}
+        env:
+          JOB_LEVEL_ENV: 'test-step-level-env'
     
       - name: prepare ssh keys
         uses: shimataro/ssh-key-action@v2
@@ -52,7 +54,7 @@ jobs:
     steps:
       - name: echo simple text
         run: echo ${{ env.JOB_LEVEL_ENV }}
-        
+
       - name: prepare ssh keys
         uses: shimataro/ssh-key-action@v2
         with:
