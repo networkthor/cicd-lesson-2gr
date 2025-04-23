@@ -97,6 +97,8 @@ jobs:
             WEBSITE_URL="http://${{ env.DEV_SRV }}:8080"
             # Perform a curl request and capture the HTTP status code
             HTTP_STATUS=$(curl -o /dev/null -s -w "%{http_code}" "$WEBSITE_URL")
+
+            echo "Test result is $HTTP_STATUS" >> test-results.txt
           
             # Check the HTTP status code
             if [[ "$HTTP_STATUS" == "200" ]]; then
@@ -115,4 +117,9 @@ jobs:
           else
             echo "❌ The tests failed. Please investigate the issue." >> $GITHUB_STEP_SUMMARY
           fi
+      
+      - name: upload test results
+        uses: actions/upload-artifact@v4
+        with:
+          path: test-results.txt
   
