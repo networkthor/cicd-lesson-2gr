@@ -12,9 +12,11 @@ env:
 jobs:
   build_and_push:              #### Название job
     runs-on: ubuntu-22.04
+    env:
+      JOB_LEVEL_ENV: 'test-job-level-env'
     steps:
       - name: echo simple text
-        run: echo "This is my first Github pipeline"
+        run: echo ${{ env.JOB_LEVEL_ENV }}
     
       - name: prepare ssh keys
         uses: shimataro/ssh-key-action@v2
@@ -48,6 +50,9 @@ jobs:
     needs: ['build_and_push']
     runs-on: ubuntu-22.04
     steps:
+      - name: echo simple text
+        run: echo ${{ env.JOB_LEVEL_ENV }}
+        
       - name: prepare ssh keys
         uses: shimataro/ssh-key-action@v2
         with:
