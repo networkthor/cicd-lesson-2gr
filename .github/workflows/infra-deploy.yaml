@@ -1,0 +1,68 @@
+name: Infra deploy
+
+run-name: ${{ inputs.ACTION_TYPE }} ${{ inputs.RESOURCE_TYPE }} on ${{ inputs.ENV_NAME }}
+
+on:
+  workflow_dispatch:
+    inputs:
+      ENV_NAME:
+        description: Environment to deploy
+        type: choice
+        required: true
+        default: dev
+        options:
+        - dev
+        - staging
+        - production
+      RESOURCE_TYPE:
+        description: Resource to deploy
+        type: choice
+        required: true
+        default: ec2
+        options:
+        - ec2
+        - alb
+        - network
+      ACTION_TYPE:
+        description: Deploy or destroy
+        type: choice
+        required: true
+        default: plan
+        options:
+        - plan
+        - plan-destroy
+        - apply
+        - destroy
+
+
+jobs:
+  infra_deploy:              #### Название job
+    runs-on: ubuntu-22.04
+    steps:
+      - name: clone repo
+        uses: actions/checkout@v4
+      
+      - name: install terraform binary
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: "1.5.5"
+  
+      - name: login to aws
+        run: |
+          export AWS_ACCESS_KEY=${{ secrets.AWS_ACCESS_KEY }}
+          export AWS_SECRET_ACCESS_KEY=${{ secrets.AWS_SECRET_ACCESS_KEY }}
+    
+      - name: terraform validate
+        run: |
+          cd infra/terraform/environments/${{ inputs.ENV_NAME }}/${{ inputs.RESOURCE_TYPE }}
+          terraform validate
+        
+      - name: terraform init
+        run: |
+          cd infra/terraform/environments/${{ inputs.ENV_NAME }}/${{ inputs.RESOURCE_TYPE }}
+          terraform init
+        
+      - name: terraform action
+        run: |
+          cd infra/terraform/environments/${{ inputs.ENV_NAME }}/${{ inputs.RESOURCE_TYPE }}
+          terraform ${{ inputs.ACTION_TYPE }}
